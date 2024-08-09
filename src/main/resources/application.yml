@@ -22,7 +22,13 @@ management:
   endpoints:
     web:
       exposure:
-        include: '*' #TODO enable only info and health for security purposes. Consider that we may want to still access other actuator endpoints securely.
+        include: health,info #TODO enable only info and health for security purposes. Consider that we may want to still access other actuator endpoints securely.
 logging:
+  level:
+    com.audition.configuration.LoggingInterceptor: DEBUG
   pattern:
     level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+
+client:
+  typicode:
+    url: https://jsonplaceholder.typicode.com/posts

@@ -1,8 +1,5 @@
 package com.audition.web.advice;
 
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.METHOD_NOT_ALLOWED;
-
 import com.audition.common.exception.SystemException;
 import com.audition.common.logging.AuditionLogger;
 import io.micrometer.common.util.StringUtils;
@@ -17,12 +14,16 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.METHOD_NOT_ALLOWED;
+
 
 @ControllerAdvice
+@SuppressWarnings({"PMD.GuardLogStatement"})
 public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionControllerAdvice.class);
     public static final String DEFAULT_TITLE = "API Error Occurred";
-    private static final Logger LOG = LoggerFactory.getLogger(ExceptionControllerAdvice.class);
     private static final String ERROR_MESSAGE = " Error Code from Exception could not be mapped to a valid HttpStatus Code - ";
     private static final String DEFAULT_MESSAGE = "API Error occurred. Please contact support or administrator.";
 
@@ -35,12 +36,13 @@ public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
 
     }
 
-
     @ExceptionHandler(Exception.class)
     ProblemDetail handleMainException(final Exception e) {
         // TODO Add handling for Exception
         final HttpStatusCode status = getHttpStatusCodeFromException(e);
-        return createProblemDetail(e, status);
+        final ProblemDetail problemDetail = createProblemDetail(e, status);
+        logger.logStandardProblemDetail(LOGGER, problemDetail, e);
+        return problemDetail;
 
     }
 
@@ -48,10 +50,11 @@ public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
     ProblemDetail handleSystemException(final SystemException e) {
         // TODO `Add Handling for SystemException
         final HttpStatusCode status = getHttpStatusCodeFromSystemException(e);
-        return createProblemDetail(e, status);
+        final ProblemDetail problemDetail = createProblemDetail(e, status);
+        logger.logStandardProblemDetail(LOGGER, problemDetail, e);
+        return problemDetail;
 
     }
-
 
     private ProblemDetail createProblemDetail(final Exception exception,
         final HttpStatusCode statusCode) {
@@ -76,7 +79,7 @@ public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
         try {
             return HttpStatusCode.valueOf(exception.getStatusCode());
         } catch (final IllegalArgumentException iae) {
-            logger.info(LOG, ERROR_MESSAGE + exception.getStatusCode());
+            logger.error(LOGGER, ERROR_MESSAGE + exception.getStatusCode());
             return INTERNAL_SERVER_ERROR;
         }
     }

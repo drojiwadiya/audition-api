@@ -7,11 +7,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @EqualsAndHashCode
-public class AuditionPost {
-
-    private int userId;
+public class PostComments {
+    private int postId;
     private int id;
-    private String title;
+    private String name;
+    private String email;
     private String body;
-
 }
